@@ -19,6 +19,7 @@ impl Task {
     fn start(&mut self) {
         self.status = Status::InProgress;
     }
+
     fn complete(&mut self) {
         self.status = Status::Completed;
     }
@@ -73,6 +74,16 @@ enum Status {
 }
 
 impl Status {
+    fn can_transition_to(&self, next: &Status) -> bool {
+        match (self, next) {
+            (Status::Todo, Status::InProgress) => true,
+            (Status::Todo, Status::Blocked { .. }) => true,
+            (Status::InProgress, Status::Completed) => true,
+            (Status::InProgress, Status::Blocked { .. }) => true,
+            (Status::Blocked { .. }, Status::InProgress) => true,
+            _ => false,
+        }
+    }
     fn label(&self) -> &str {
         match self {
             Status::Todo => "Todo",
@@ -105,6 +116,31 @@ fn main() {
 
     print_task(&mut task2);
 
+    println!("{}", Status::Todo.can_transition_to(&Status::InProgress)); // expect true
+    println!(
+        "{}",
+        Status::Completed.can_transition_to(&Status::InProgress)
+    ); // expect false
+    println!(
+        "{}",
+        Status::InProgress.can_transition_to(&Status::Completed)
+    ); // expect true
+    println!(
+        "{}",
+        Status::InProgress.can_transition_to(&Status::Blocked {
+            blocked_reason: "Waiting for feedback".into()
+        })
+    ); // expect true
+    println!("{}", Status::Todo.can_transition_to(&Status::Todo)); // expect true
+
+    println!(
+        "{}",
+        Status::Blocked {
+            blocked_reason: "Waiting for feedback".into()
+        }
+        .can_transition_to(&Status::InProgress)
+    ); // expect true
+
     println!("{}", task.summary());
 
     println!("{}", task2.summary());
@@ -116,4 +152,60 @@ fn main() {
 fn print_task(task: &mut Task) {
     task.start();
     println!("{}", task.summary());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn todo_can_move_to_in_progress() {
+        assert!(Status::Todo.can_transition_to(&Status::InProgress));
+    }
+
+    #[test]
+    fn completed_is_final() {
+        assert!(!Status::Completed.can_transition_to(&Status::InProgress));
+    }
+
+    #[test]
+    fn in_progress_can_move_to_completed() {
+        assert!(Status::InProgress.can_transition_to(&Status::Completed));
+    }
+
+    #[test]
+    fn blocked_can_move_to_in_progress() {
+        assert!(
+            Status::Blocked {
+                blocked_reason: "Waiting for feedback".into()
+            }
+            .can_transition_to(&Status::InProgress)
+        );
+    }
+
+    #[test]
+    fn todo_cannot_move_to_completed() {
+        assert!(!Status::Todo.can_transition_to(&Status::Completed));
+    }
+    #[test]
+    fn todo_can_move_to_blocked() {
+        assert!(Status::Todo.can_transition_to(&Status::Blocked {
+            blocked_reason: "Waiting for feedback".into()
+        }));
+    }
+
+    #[test]
+    fn blocked_cannot_move_to_completed() {
+        assert!(
+            !Status::Blocked {
+                blocked_reason: "Waiting for feedback".into()
+            }
+            .can_transition_to(&Status::Completed)
+        );
+    }
+
+    #[test]
+    fn same_status_is_rejected() {
+        assert!(!Status::Todo.can_transition_to(&Status::Todo));
+    }
 }
