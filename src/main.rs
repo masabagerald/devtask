@@ -23,12 +23,24 @@ impl Task {
         self.status = Status::Completed;
     }
 
+    fn block(&mut self, reason: String) {
+        self.status = Status::Blocked {
+            blocked_reason: reason,
+        };
+    }
+
     fn summary(&self) -> String {
+        let status_text = match &self.status {
+            Status::Blocked { blocked_reason } => format!("Blocked: {}", blocked_reason),
+            other => other.label().to_string(),
+        };
+
         format!(
-            "id: {} (Priority: {},{})",
+            "id: {} {} (Priority: {},{})",
             self.id,
+            self.title,
             self.priority.label(),
-            self.status.label()
+            status_text
         )
     }
 }
@@ -52,12 +64,12 @@ impl Priority {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 enum Status {
     Todo,
     InProgress,
     Completed,
-    Blocked,
+    Blocked { blocked_reason: String },
 }
 
 impl Status {
@@ -66,7 +78,7 @@ impl Status {
             Status::Todo => "Todo",
             Status::InProgress => "In Progress",
             Status::Completed => "Completed",
-            Status::Blocked => "Blocked",
+            Status::Blocked { .. } => "Blocked",
         }
     }
 }
@@ -88,6 +100,9 @@ fn main() {
 
     task4.start();
 
+    let mut task5 = Task::new(6, "Fix bugs".into(), Priority::High);
+    task5.block("Waiting for feedback".into());
+
     print_task(&mut task2);
 
     println!("{}", task.summary());
@@ -95,9 +110,10 @@ fn main() {
     println!("{}", task2.summary());
     println!("{}", task3.summary());
     println!("{}", task4.summary());
+    println!("{}", task5.summary());
 }
 
 fn print_task(task: &mut Task) {
-    task.complete();
+    task.start();
     println!("{}", task.summary());
 }
