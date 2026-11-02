@@ -16,18 +16,18 @@ impl Task {
         }
     }
 
-    fn start(&mut self) {
-        self.status = Status::InProgress;
+    fn start(&mut self) -> Result<(), String> {
+        self.transition_to(Status::InProgress)
     }
 
-    fn complete(&mut self) {
-        self.status = Status::Completed;
+    fn complete(&mut self) -> Result<(), String> {
+        self.transition_to(Status::Completed)
     }
 
-    fn block(&mut self, reason: String) {
-        self.status = Status::Blocked {
+    fn block(&mut self, reason: String) -> Result<(), String> {
+        self.transition_to(Status::Blocked {
             blocked_reason: reason,
-        };
+        })
     }
 
     fn summary(&self) -> String {
@@ -43,6 +43,19 @@ impl Task {
             self.priority.label(),
             status_text
         )
+    }
+
+    fn transition_to(&mut self, next: Status) -> Result<(), String> {
+        if !self.status.can_transition_to(&next) {
+            return Err(format!(
+                "cannot move task #{} from {} to {}",
+                self.id,
+                self.status.label(),
+                next.label()
+            ));
+        }
+        self.status = next;
+        Ok(())
     }
 }
 
@@ -100,7 +113,22 @@ fn main() {
     let mut task2 = Task::new(3, "Build a Rust project".into(), Priority::Critical);
 
     task2.title = "Build a Rust project with Cargo".into();
-    task2.complete();
+
+    match task2.start() {
+        Ok(()) => println!("Task #3 started"),
+        Err(e) => println!("Error: {e}"),
+    }
+
+    match task2.complete() {
+        Ok(()) => println!("Task #3 completed"),
+        Err(e) => println!("Error: {e}"),
+    }
+
+    // Deliberately illegal: a completed task cannot restart
+    match task2.start() {
+        Ok(()) => println!("Task #3 restarted"),
+        Err(e) => println!("Error: {e}"),
+    }
 
     let title = String::from("Write docs");
 
@@ -109,37 +137,19 @@ fn main() {
 
     let mut task4 = Task::new(5, "Test the project".into(), Priority::Low);
 
-    task4.start();
+    match task4.start() {
+        Ok(()) => println!("Task #4 started"),
+        Err(e) => println!("Error: {e}"),
+    }
 
     let mut task5 = Task::new(6, "Fix bugs".into(), Priority::High);
-    task5.block("Waiting for feedback".into());
 
-    print_task(&mut task2);
+    match task5.block("Waiting for feedback".into()) {
+        Ok(()) => println!("Task #5 blocked"),
+        Err(e) => println!("Error: {e}"),
+    }
 
-    println!("{}", Status::Todo.can_transition_to(&Status::InProgress)); // expect true
-    println!(
-        "{}",
-        Status::Completed.can_transition_to(&Status::InProgress)
-    ); // expect false
-    println!(
-        "{}",
-        Status::InProgress.can_transition_to(&Status::Completed)
-    ); // expect true
-    println!(
-        "{}",
-        Status::InProgress.can_transition_to(&Status::Blocked {
-            blocked_reason: "Waiting for feedback".into()
-        })
-    ); // expect true
-    println!("{}", Status::Todo.can_transition_to(&Status::Todo)); // expect true
-
-    println!(
-        "{}",
-        Status::Blocked {
-            blocked_reason: "Waiting for feedback".into()
-        }
-        .can_transition_to(&Status::InProgress)
-    ); // expect true
+    print_task(&task2);
 
     println!("{}", task.summary());
 
@@ -149,8 +159,7 @@ fn main() {
     println!("{}", task5.summary());
 }
 
-fn print_task(task: &mut Task) {
-    task.start();
+fn print_task(task: &Task) {
     println!("{}", task.summary());
 }
 
@@ -207,5 +216,18 @@ mod tests {
     #[test]
     fn same_status_is_rejected() {
         assert!(!Status::Todo.can_transition_to(&Status::Todo));
+    }
+
+    #[test]
+    fn cannot_complete_a_todo_task() {
+        let mut task = Task::new(1, "Test".into(), Priority::Low);
+        assert!(task.complete().is_err());
+    }
+
+    #[test]
+    fn failed_transition_leaves_status_unchanged() {
+        let mut task = Task::new(1, "Test".into(), Priority::Low);
+        let _ = task.complete();
+        assert_eq!(task.status, Status::Todo);
     }
 }
