@@ -16,15 +16,15 @@ impl Task {
         }
     }
 
-    fn start(&mut self) -> Result<(), String> {
+    fn start(&mut self) -> Result<(), TaskError> {
         self.transition_to(Status::InProgress)
     }
 
-    fn complete(&mut self) -> Result<(), String> {
+    fn complete(&mut self) -> Result<(), TaskError> {
         self.transition_to(Status::Completed)
     }
 
-    fn block(&mut self, reason: String) -> Result<(), String> {
+    fn block(&mut self, reason: String) -> Result<(), TaskError> {
         self.transition_to(Status::Blocked {
             blocked_reason: reason,
         })
@@ -45,14 +45,13 @@ impl Task {
         )
     }
 
-    fn transition_to(&mut self, next: Status) -> Result<(), String> {
+    fn transition_to(&mut self, next: Status) -> Result<(), TaskError> {
         if !self.status.can_transition_to(&next) {
-            return Err(format!(
-                "cannot move task #{} from {} to {}",
-                self.id,
-                self.status.label(),
-                next.label()
-            ));
+            return Err(TaskError::InvalidTransition {
+                task_id: self.id,
+                from: self.status.clone(),
+                to: next.clone(),
+            });
         }
         self.status = next;
         Ok(())
@@ -107,6 +106,30 @@ impl Status {
     }
 }
 
+#[derive(Debug, PartialEq)]
+enum TaskError {
+    InvalidTransition {
+        task_id: u32,
+        from: Status,
+        to: Status,
+    },
+}
+
+impl TaskError {
+    fn message(&self) -> String {
+        match self {
+            TaskError::InvalidTransition { task_id, from, to } => {
+                format!(
+                    "Task #{} cannot transition from {} to {}",
+                    task_id,
+                    from.label(),
+                    to.label()
+                )
+            }
+        }
+    }
+}
+
 fn main() {
     let task = Task::new(1, "Learn Rust".into(), Priority::High);
 
@@ -116,18 +139,18 @@ fn main() {
 
     match task2.start() {
         Ok(()) => println!("Task #{} started", task2.id),
-        Err(e) => println!("Error: {e}"),
+        Err(e) => println!("Error: {}", e.message()),
     }
 
     match task2.complete() {
         Ok(()) => println!("Task #{} completed", task2.id),
-        Err(e) => println!("Error: {e}"),
+        Err(e) => println!("Error: {}", e.message()),
     }
 
     // Deliberately illegal: a completed task cannot restart
     match task2.start() {
         Ok(()) => println!("Task #{} restarted", task2.id),
-        Err(e) => println!("Error: {e}"),
+        Err(e) => println!("Error: {}", e.message()),
     }
 
     let title = String::from("Write docs");
@@ -139,21 +162,21 @@ fn main() {
 
     match task4.start() {
         Ok(()) => println!("Task #{} started", task4.id),
-        Err(e) => println!("Error: {e}"),
+        Err(e) => println!("Error: {}", e.message()),
     }
 
     let mut task5 = Task::new(6, "Fix bugs".into(), Priority::High);
 
     match task5.block("Waiting for feedback".into()) {
         Ok(()) => println!("Task #{} blocked", task5.id),
-        Err(e) => println!("Error: {e}"),
+        Err(e) => println!("Error: {}", e.message()),
     }
 
     print_task(&task2);
 
     println!("{}", task.summary());
 
-    //println!("{}", task2.summary());
+    println!("{}", task2.summary());
     println!("{}", task3.summary());
     println!("{}", task4.summary());
     println!("{}", task5.summary());
@@ -219,10 +242,10 @@ mod tests {
     }
 
     #[test]
-    fn cannot_complete_a_todo_task() {
+/*     fn cannot_complete_a_todo_task() {
         let mut task = Task::new(1, "Test".into(), Priority::Low);
         assert!(task.complete().is_err());
-    }
+    } */
 
     #[test]
     fn failed_transition_leaves_status_unchanged() {
@@ -230,4 +253,17 @@ mod tests {
         let _ = task.complete();
         assert_eq!(task.status, Status::Todo);
     }
+
+       #[test]
+   fn cannot_complete_a_todo_task() {
+       let mut task = Task::new(1, "Test".into(), Priority::Low);
+       assert_eq!(
+           task.complete(),
+           Err(TaskError::InvalidTransition {
+               task_id: 1,
+               from: Status::Todo,
+               to: Status::Completed,
+           })
+       );
+   }
 }
