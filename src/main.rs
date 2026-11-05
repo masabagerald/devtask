@@ -115,18 +115,18 @@ fn main() {
     task2.title = "Build a Rust project with Cargo".into();
 
     match task2.start() {
-        Ok(()) => println!("Task #3 started"),
+        Ok(()) => println!("Task #{} started", task2.id),
         Err(e) => println!("Error: {e}"),
     }
 
     match task2.complete() {
-        Ok(()) => println!("Task #3 completed"),
+        Ok(()) => println!("Task #{} completed", task2.id),
         Err(e) => println!("Error: {e}"),
     }
 
     // Deliberately illegal: a completed task cannot restart
     match task2.start() {
-        Ok(()) => println!("Task #3 restarted"),
+        Ok(()) => println!("Task #{} restarted", task2.id),
         Err(e) => println!("Error: {e}"),
     }
 
@@ -138,14 +138,14 @@ fn main() {
     let mut task4 = Task::new(5, "Test the project".into(), Priority::Low);
 
     match task4.start() {
-        Ok(()) => println!("Task #4 started"),
+        Ok(()) => println!("Task #{} started", task4.id),
         Err(e) => println!("Error: {e}"),
     }
 
     let mut task5 = Task::new(6, "Fix bugs".into(), Priority::High);
 
     match task5.block("Waiting for feedback".into()) {
-        Ok(()) => println!("Task #5 blocked"),
+        Ok(()) => println!("Task #{} blocked", task5.id),
         Err(e) => println!("Error: {e}"),
     }
 
@@ -153,7 +153,7 @@ fn main() {
 
     println!("{}", task.summary());
 
-    println!("{}", task2.summary());
+    //println!("{}", task2.summary());
     println!("{}", task3.summary());
     println!("{}", task4.summary());
     println!("{}", task5.summary());
