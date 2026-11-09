@@ -37,7 +37,7 @@ impl Task {
         };
 
         format!(
-            "id: {} {} (Priority: {},{})",
+            "id: {} {} (Priority: {}, {})",
             self.id,
             self.title,
             self.priority.label(),
@@ -50,7 +50,7 @@ impl Task {
             return Err(TaskError::InvalidTransition {
                 task_id: self.id,
                 from: self.status.clone(),
-                to: next.clone(),
+                to: next,
             });
         }
         self.status = next;
@@ -174,7 +174,7 @@ fn main() {
 
     print_task(&task2);
 
-    println!("{}", task.summary());
+    //println!("{}", task.summary());
 
     println!("{}", task2.summary());
     println!("{}", task3.summary());
@@ -241,12 +241,10 @@ mod tests {
         assert!(!Status::Todo.can_transition_to(&Status::Todo));
     }
 
-    #[test]
-/*     fn cannot_complete_a_todo_task() {
+    /*     fn cannot_complete_a_todo_task() {
         let mut task = Task::new(1, "Test".into(), Priority::Low);
         assert!(task.complete().is_err());
     } */
-
     #[test]
     fn failed_transition_leaves_status_unchanged() {
         let mut task = Task::new(1, "Test".into(), Priority::Low);
@@ -254,16 +252,16 @@ mod tests {
         assert_eq!(task.status, Status::Todo);
     }
 
-       #[test]
-   fn cannot_complete_a_todo_task() {
-       let mut task = Task::new(1, "Test".into(), Priority::Low);
-       assert_eq!(
-           task.complete(),
-           Err(TaskError::InvalidTransition {
-               task_id: 1,
-               from: Status::Todo,
-               to: Status::Completed,
-           })
-       );
-   }
+    #[test]
+    fn cannot_complete_a_todo_task() {
+        let mut task = Task::new(1, "Test".into(), Priority::Low);
+        assert_eq!(
+            task.complete(),
+            Err(TaskError::InvalidTransition {
+                task_id: 1,
+                from: Status::Todo,
+                to: Status::Completed,
+            })
+        );
+    }
 }
