@@ -1,3 +1,5 @@
+use core::error;
+
 #[derive(Debug)]
 struct Task {
     id: u32,
@@ -7,13 +9,17 @@ struct Task {
 }
 
 impl Task {
-    fn new(id: u32, title: String, priority: Priority) -> Self {
-        Task {
+    fn new(id: u32, title: String, priority: Priority) -> Result<Self, TaskError> {
+        if title.trim().is_empty() {
+            return Err(TaskError::EmptyTitle);
+        }
+
+        Ok(Task {
             id,
             title,
             priority,
             status: Status::Todo,
-        }
+        })
     }
 
     fn start(&mut self) -> Result<(), TaskError> {
@@ -113,6 +119,7 @@ enum TaskError {
         from: Status,
         to: Status,
     },
+    EmptyTitle,
 }
 
 impl TaskError {
@@ -126,14 +133,17 @@ impl TaskError {
                     to.label()
                 )
             }
+            TaskError::EmptyTitle => "Task title cannot be empty".into(),
         }
     }
 }
 
-fn main() {
-    let task = Task::new(1, "Learn Rust".into(), Priority::High);
+fn main() -> Result<(), TaskError> {
+    let task = Task::new(1, "Learn Rust".into(), Priority::High)?;
 
-    let mut task2 = Task::new(3, "Build a Rust project".into(), Priority::Critical);
+
+
+    let mut task2 = Task::new(3, "Build a Rust project".into(), Priority::Critical)?;
 
     task2.title = "Build a Rust project with Cargo".into();
 
@@ -155,17 +165,17 @@ fn main() {
 
     let title = String::from("Write docs");
 
-    let task3 = Task::new(4, title.clone(), Priority::Medium);
+    let task3 = Task::new(4, title.clone(), Priority::Medium)?;
     println!("Original title: {title}");
 
-    let mut task4 = Task::new(5, "Test the project".into(), Priority::Low);
+    let mut task4 = Task::new(5, "Test the project".into(), Priority::Low)?;
 
     match task4.start() {
         Ok(()) => println!("Task #{} started", task4.id),
         Err(e) => println!("Error: {}", e.message()),
     }
 
-    let mut task5 = Task::new(6, "Fix bugs".into(), Priority::High);
+    let mut task5 = Task::new(6, "Fix bugs".into(), Priority::High)?;
 
     match task5.block("Waiting for feedback".into()) {
         Ok(()) => println!("Task #{} blocked", task5.id),
@@ -180,6 +190,8 @@ fn main() {
     println!("{}", task3.summary());
     println!("{}", task4.summary());
     println!("{}", task5.summary());
+
+    Ok(())
 }
 
 fn print_task(task: &Task) {
@@ -247,14 +259,14 @@ mod tests {
     } */
     #[test]
     fn failed_transition_leaves_status_unchanged() {
-        let mut task = Task::new(1, "Test".into(), Priority::Low);
+        let mut task = Task::new(1, "Test".into(), Priority::Low).unwrap();
         let _ = task.complete();
         assert_eq!(task.status, Status::Todo);
     }
 
     #[test]
     fn cannot_complete_a_todo_task() {
-        let mut task = Task::new(1, "Test".into(), Priority::Low);
+        let mut task = Task::new(1, "Test".into(), Priority::Low).unwrap();
         assert_eq!(
             task.complete(),
             Err(TaskError::InvalidTransition {
@@ -263,5 +275,11 @@ mod tests {
                 to: Status::Completed,
             })
         );
+    }
+
+    #[test]
+    fn blank_title_is_rejected() {
+        let result = Task::new(1, "   ".into(), Priority::Low);
+        assert_eq!(result.unwrap_err(), TaskError::EmptyTitle);
     }
 }
