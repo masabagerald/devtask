@@ -1,6 +1,7 @@
 mod priority;
-
+mod status;
 use priority::Priority;
+use status::Status;
 
 #[derive(Debug)]
 struct Task {
@@ -63,35 +64,6 @@ impl Task {
         }
         self.status = next;
         Ok(())
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-enum Status {
-    Todo,
-    InProgress,
-    Completed,
-    Blocked { blocked_reason: String },
-}
-
-impl Status {
-    fn can_transition_to(&self, next: &Status) -> bool {
-        match (self, next) {
-            (Status::Todo, Status::InProgress) => true,
-            (Status::Todo, Status::Blocked { .. }) => true,
-            (Status::InProgress, Status::Completed) => true,
-            (Status::InProgress, Status::Blocked { .. }) => true,
-            (Status::Blocked { .. }, Status::InProgress) => true,
-            _ => false,
-        }
-    }
-    fn label(&self) -> &str {
-        match self {
-            Status::Todo => "Todo",
-            Status::InProgress => "In Progress",
-            Status::Completed => "Completed",
-            Status::Blocked { .. } => "Blocked",
-        }
     }
 }
 
@@ -171,6 +143,8 @@ fn main() -> Result<(), TaskError> {
     println!("{}", task3.summary());
     println!("{}", task4.summary());
     println!("{}", task5.summary());
+
+    println!("{}", task.summary());
 
     Ok(())
 }
