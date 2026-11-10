@@ -1,7 +1,9 @@
 mod priority;
 mod status;
+mod error;
 use priority::Priority;
 use status::Status;
+use error::TaskError;
 
 #[derive(Debug)]
 struct Task {
@@ -67,31 +69,6 @@ impl Task {
     }
 }
 
-#[derive(Debug, PartialEq)]
-enum TaskError {
-    InvalidTransition {
-        task_id: u32,
-        from: Status,
-        to: Status,
-    },
-    EmptyTitle,
-}
-
-impl TaskError {
-    fn message(&self) -> String {
-        match self {
-            TaskError::InvalidTransition { task_id, from, to } => {
-                format!(
-                    "Task #{} cannot transition from {} to {}",
-                    task_id,
-                    from.label(),
-                    to.label()
-                )
-            }
-            TaskError::EmptyTitle => "Task title cannot be empty".into(),
-        }
-    }
-}
 
 fn main() -> Result<(), TaskError> {
     let task = Task::new(1, "Learn Rust".into(), Priority::High)?;
