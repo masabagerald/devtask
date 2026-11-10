@@ -1,4 +1,3 @@
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Status {
     Todo,
@@ -32,8 +31,7 @@ impl Status {
 mod tests {
     use super::*;
 
-
-  #[test]
+    #[test]
     fn todo_can_move_to_in_progress() {
         assert!(Status::Todo.can_transition_to(&Status::InProgress));
     }
