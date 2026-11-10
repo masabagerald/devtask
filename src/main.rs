@@ -1,11 +1,10 @@
-mod error;
-mod priority;
-mod status;
-mod task;
-use error::TaskError;
-use priority::Priority;
 
-use task::Task;
+use devtask::error::TaskError;
+
+use devtask::priority::Priority;
+
+
+use devtask::task::Task;
 
 fn main() -> Result<(), TaskError> {
     let task = Task::new(1, "Learn Rust".into(), Priority::High)?;
