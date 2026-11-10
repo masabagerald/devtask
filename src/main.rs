@@ -1,4 +1,6 @@
-use core::error;
+mod priority;
+
+use priority::Priority;
 
 #[derive(Debug)]
 struct Task {
@@ -64,25 +66,6 @@ impl Task {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum Priority {
-    Low,
-    Medium,
-    High,
-    Critical,
-}
-
-impl Priority {
-    fn label(&self) -> &str {
-        match self {
-            Priority::Low => "Low",
-            Priority::Medium => "Medium",
-            Priority::High => "High",
-            Priority::Critical => "Critical",
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 enum Status {
     Todo,
@@ -140,8 +123,6 @@ impl TaskError {
 
 fn main() -> Result<(), TaskError> {
     let task = Task::new(1, "Learn Rust".into(), Priority::High)?;
-
-
 
     let mut task2 = Task::new(3, "Build a Rust project".into(), Priority::Critical)?;
 
