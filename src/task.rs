@@ -77,7 +77,6 @@ impl Task {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -112,9 +111,9 @@ mod tests {
         assert_eq!(result.unwrap_err(), TaskError::EmptyTitle);
     }
 
-       #[test]
-   fn rename_rejects_blank_title() {
-       let mut task = Task::new(1, "Test".into(), Priority::Low).unwrap();
-       assert_eq!(task.rename("  ".into()), Err(TaskError::EmptyTitle));
-   }
+    #[test]
+    fn rename_rejects_blank_title() {
+        let mut task = Task::new(1, "Test".into(), Priority::Low).unwrap();
+        assert_eq!(task.rename("  ".into()), Err(TaskError::EmptyTitle));
+    }
 }

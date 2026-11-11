@@ -1,67 +1,30 @@
-
 use devtask::error::TaskError;
 
 use devtask::priority::Priority;
 
 
-use devtask::task::Task;
+
+use devtask::task_list::TaskList;
 
 fn main() -> Result<(), TaskError> {
-    let task = Task::new(1, "Learn Rust".into(), Priority::High)?;
+    let mut list = TaskList::new();
 
-    let mut task2 = Task::new(3, "Build a Rust project".into(), Priority::Critical)?;
+    let id1 = list.add("Learn Rust".into(), Priority::High)?;
+    let id2 = list.add("Build a Rust project".into(), Priority::Critical)?;
+    let id3 = list.add("Write docs".into(), Priority::Medium)?;
 
-    task2.rename("Build a Rust project with Cargo".into())?;
+    println!("Added tasks {id1}, {id2}, {id3}");
+    println!("Total tasks: {}", list.len());
 
-    match task2.start() {
-        Ok(()) => println!("Task #{} started", task2.id()),
-        Err(e) => println!("Error: {}", e.message()),
+    match list.get(2) {
+        Some(task) => println!("Found: {}", task.summary()),
+        None => println!("No task with id 2"),
     }
 
-    match task2.complete() {
-        Ok(()) => println!("Task #{} completed", task2.id()),
-        Err(e) => println!("Error: {}", e.message()),
+    match list.get(99) {
+        Some(task) => println!("Found: {}", task.summary()),
+        None => println!("No task with id 99"),
     }
-
-    // Deliberately illegal: a completed task cannot restart
-    match task2.start() {
-        Ok(()) => println!("Task #{} restarted", task2.id()),
-        Err(e) => println!("Error: {}", e.message()),
-    }
-
-    let title = String::from("Write docs");
-
-    let task3 = Task::new(4, title.clone(), Priority::Medium)?;
-    println!("Original title: {title}");
-
-    let mut task4 = Task::new(5, "Test the project".into(), Priority::Low)?;
-
-    match task4.start() {
-        Ok(()) => println!("Task #{} started", task4.id()),
-        Err(e) => println!("Error: {}", e.message()),
-    }
-
-    let mut task5 = Task::new(6, "Fix bugs".into(), Priority::High)?;
-
-    match task5.block("Waiting for feedback".into()) {
-        Ok(()) => println!("Task #{} blocked", task5.id()),
-        Err(e) => println!("Error: {}", e.message()),
-    }
-
-    print_task(&task2);
-
-    //println!("{}", task.summary());
-
-    println!("{}", task2.summary());
-    println!("{}", task3.summary());
-    println!("{}", task4.summary());
-    println!("{}", task5.summary());
-
-    println!("{}", task.summary());
 
     Ok(())
-}
-
-fn print_task(task: &Task) {
-    println!("{}", task.summary());
 }
