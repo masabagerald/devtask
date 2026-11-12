@@ -18,6 +18,14 @@ impl Task {
         &self.status
     }
 
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn priority(&self) -> &Priority {
+        &self.priority
+    }
+
     pub fn rename(&mut self, title: String) -> Result<(), TaskError> {
         if title.trim().is_empty() {
             return Err(TaskError::EmptyTitle);
@@ -119,4 +127,5 @@ mod tests {
         let mut task = Task::new(1, "Test".into(), Priority::Low).unwrap();
         assert_eq!(task.rename("  ".into()), Err(TaskError::EmptyTitle));
     }
+
 }

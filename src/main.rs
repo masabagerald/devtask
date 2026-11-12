@@ -2,6 +2,7 @@ use devtask::error::TaskError;
 
 use devtask::priority::Priority;
 
+use devtask::status::Status;
 use devtask::task_list::TaskList;
 
 fn main() -> Result<(), TaskError> {
@@ -41,6 +42,18 @@ fn main() -> Result<(), TaskError> {
     match list.get(99) {
         Some(task) => println!("Found: {}", task.summary()),
         None => println!("No task with id 99"),
+    }
+
+    match list.block_task(3, "Waiting on API keys".into()) {
+        Ok(()) => println!("Task #3 blocked"),
+        Err(e) => println!("Error: {}", e.message()),
+    }
+
+    println!("In progress: {}", list.count_by_status(&Status::InProgress));
+
+    println!("--- Tasks by priority ---");
+    for task in list.sorted_by_priority() {
+        println!("{}", task.summary());
     }
 
     Ok(())

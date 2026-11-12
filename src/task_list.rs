@@ -1,5 +1,6 @@
 use crate::error::TaskError;
 use crate::priority::Priority;
+use crate::status::Status;
 use crate::task::Task;
 
 pub struct TaskList {
@@ -48,6 +49,30 @@ impl TaskList {
         let task = self.get_mut(id).ok_or(TaskError::TaskNotFound(id))?;
         task.block(reason)
     }
+
+    pub fn by_status(&self, status: &Status) -> Vec<&Task> {
+        self.tasks
+            .iter()
+            .filter(|task| task.status() == status)
+            .collect()
+    }
+
+    pub fn titles(&self) -> Vec<&str> {
+        self.tasks.iter().map(|task| task.title()).collect()
+    }
+
+    pub fn count_by_status(&self, status: &Status) -> usize {
+        self.tasks
+            .iter()
+            .filter(|task| task.status() == status)
+            .count()
+    }
+
+    pub fn sorted_by_priority(&self) -> Vec<&Task> {
+        let mut tasks: Vec<&Task> = self.tasks.iter().collect();
+        tasks.sort_by(|a, b| b.priority().cmp(&a.priority()));
+        tasks
+    }
 }
 
 #[cfg(test)]
@@ -89,5 +114,34 @@ mod tests {
 
         let task = list.get(id).unwrap();
         assert_eq!(task.status(), &Status::InProgress);
+    }
+
+     #[test]
+    fn by_status_returns_only_matching() {
+        let mut list = crate::task_list::TaskList::new();
+        let id1 = list.add("Task 1".into(), Priority::Low).unwrap();
+        let id2 = list.add("Task 2".into(), Priority::Medium).unwrap();
+        let _ = list.start_task(id1);
+        let completed_tasks = list.by_status(&Status::Completed);
+        assert!(completed_tasks.is_empty());
+    }
+
+     #[test]
+    fn sorted_by_priority_puts_critical_first() {
+        let mut list = crate::task_list::TaskList::new();
+        let _ = list.add("Low".into(), Priority::Low);
+        let _ = list.add("Critical".into(), Priority::Critical);
+        let _ = list.add("Medium".into(), Priority::Medium);
+        let sorted = list.sorted_by_priority();
+        assert_eq!(sorted[0].priority(), &Priority::Critical);
+    }
+
+     #[test]
+    fn titles_lists_all_titles() {
+        let mut list = crate::task_list::TaskList::new();
+        let _ = list.add("Task 1".into(), Priority::Low);
+        let _ = list.add("Task 2".into(), Priority::Medium);
+        let titles = list.titles();
+        assert_eq!(titles, vec!["Task 1", "Task 2"]);
     }
 }
