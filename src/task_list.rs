@@ -53,7 +53,7 @@ impl TaskList {
     pub fn by_status(&self, status: &Status) -> Vec<&Task> {
         self.tasks
             .iter()
-            .filter(|task| task.status() == status)
+            .filter(|task| task.status().same_kind(status))
             .collect()
     }
 
@@ -64,7 +64,7 @@ impl TaskList {
     pub fn count_by_status(&self, status: &Status) -> usize {
         self.tasks
             .iter()
-            .filter(|task| task.status() == status)
+            .filter(|task| task.status().same_kind(status))
             .count()
     }
 
@@ -116,17 +116,17 @@ mod tests {
         assert_eq!(task.status(), &Status::InProgress);
     }
 
-     #[test]
+    #[test]
     fn by_status_returns_only_matching() {
         let mut list = crate::task_list::TaskList::new();
         let id1 = list.add("Task 1".into(), Priority::Low).unwrap();
-        let id2 = list.add("Task 2".into(), Priority::Medium).unwrap();
+        list.add("Task 2".into(), Priority::Medium).unwrap();
         let _ = list.start_task(id1);
         let completed_tasks = list.by_status(&Status::Completed);
         assert!(completed_tasks.is_empty());
     }
 
-     #[test]
+    #[test]
     fn sorted_by_priority_puts_critical_first() {
         let mut list = crate::task_list::TaskList::new();
         let _ = list.add("Low".into(), Priority::Low);
@@ -136,12 +136,24 @@ mod tests {
         assert_eq!(sorted[0].priority(), &Priority::Critical);
     }
 
-     #[test]
+    #[test]
     fn titles_lists_all_titles() {
         let mut list = crate::task_list::TaskList::new();
         let _ = list.add("Task 1".into(), Priority::Low);
         let _ = list.add("Task 2".into(), Priority::Medium);
         let titles = list.titles();
         assert_eq!(titles, vec!["Task 1", "Task 2"]);
+    }
+
+    #[test]
+    fn by_status_finds_blocked_regardless_of_reason() {
+        let mut list = TaskList::new();
+        let id = list.add("A".into(), Priority::Low).unwrap();
+        list.block_task(id, "Waiting on API keys".into()).unwrap();
+
+        let found = list.by_status(&Status::Blocked {
+            blocked_reason: "anything".into(),
+        });
+        assert_eq!(found.len(), 1);
     }
 }

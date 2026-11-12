@@ -25,6 +25,9 @@ impl Status {
             Status::Blocked { .. } => "Blocked",
         }
     }
+    pub fn same_kind(&self, other: &Status) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
 }
 
 #[cfg(test)]

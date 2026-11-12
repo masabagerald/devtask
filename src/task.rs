@@ -127,5 +127,4 @@ mod tests {
         let mut task = Task::new(1, "Test".into(), Priority::Low).unwrap();
         assert_eq!(task.rename("  ".into()), Err(TaskError::EmptyTitle));
     }
-
 }
