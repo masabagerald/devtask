@@ -14,6 +14,9 @@ impl Task {
     pub fn id(&self) -> u32 {
         self.id
     }
+    pub fn status(&self) -> &Status {
+        &self.status
+    }
 
     pub fn rename(&mut self, title: String) -> Result<(), TaskError> {
         if title.trim().is_empty() {
@@ -89,7 +92,7 @@ mod tests {
     fn failed_transition_leaves_status_unchanged() {
         let mut task = Task::new(1, "Test".into(), Priority::Low).unwrap();
         let _ = task.complete();
-        assert_eq!(task.status, Status::Todo);
+        assert_eq!(task.status(), &Status::Todo);
     }
 
     #[test]

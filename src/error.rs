@@ -8,6 +8,7 @@ pub enum TaskError {
         to: Status,
     },
     EmptyTitle,
+    TaskNotFound(u32),
 }
 
 impl TaskError {
@@ -22,6 +23,7 @@ impl TaskError {
                 )
             }
             TaskError::EmptyTitle => "Task title cannot be empty".into(),
+            TaskError::TaskNotFound(id) => format!("Task with id {} not found", id),
         }
     }
 }
