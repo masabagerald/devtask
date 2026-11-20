@@ -31,6 +31,12 @@ fn main() -> Result<(), TaskError> {
         println!("{}", task.summary());
     }
 
+    //In main, search for something and print the matching summaries with a for loop.
+    let search_results = list.search("rust");
+    for task in search_results {
+        println!("{}", task.summary());
+    }
+
     println!("Added tasks {id1}, {id2}, {id3}");
     println!("Total tasks: {}", list.len());
 
@@ -56,5 +62,13 @@ fn main() -> Result<(), TaskError> {
         println!("{}", task.summary());
     }
 
+    //In main, search for something and print the matching summaries with a for loop.
+    let search_results = list.search("rust");
+    for task in search_results {
+        println!("our summary {}", task.summary());
+    }
+
     Ok(())
+
+    
 }

@@ -73,6 +73,14 @@ impl TaskList {
         tasks.sort_by(|a, b| b.priority().cmp(&a.priority()));
         tasks
     }
+
+    pub fn search(&self, query: &str) -> Vec<&Task> {
+        let query = query.to_lowercase();
+        self.tasks
+            .iter()
+            .filter(|task| task.title().to_lowercase().contains(&query))
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -155,5 +163,33 @@ mod tests {
             blocked_reason: "anything".into(),
         });
         assert_eq!(found.len(), 1);
+    }
+
+    #[test]
+    fn search_is_case_insensitive() {
+        let mut list = TaskList::new();
+        let _ = list.add("Write docs".into(), Priority::Low);
+
+        let results = list.search("DOCS");
+        assert_eq!(results.len(), 1);
+    }
+
+    #[test]
+    fn search_with_no_matches_returns_empty() {
+        let mut list = TaskList::new();
+        let _ = list.add("Write docs".into(), Priority::Low);
+
+        let results = list.search("nonexistent");
+        assert_eq!(results.len(), 0);
+    }
+
+    #[test]
+    fn search_accepts_a_string_too() {
+        let mut list = TaskList::new();
+        let _ = list.add("Write docs".into(), Priority::Low);
+
+        let query = String::from("docs");
+        let results = list.search(&query);
+        assert_eq!(results.len(), 1);
     }
 }
