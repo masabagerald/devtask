@@ -3,8 +3,22 @@ use devtask::priority::Priority;
 use devtask::status::Status;
 use devtask::task_list::TaskList;
 
-fn main() -> Result<(), TaskError> {
+use std::process;
+
+fn main() {
+    if let Err(e) = run() {
+        eprintln!("Error: {e}");
+        process::exit(1);
+    }
+}
+
+
+fn run() -> Result<(), TaskError> {
     let mut list = TaskList::new();
+
+
+    //let _bad = devtask::task::Task::new(99, "   ".into(), Priority::Low)?; 
+
     list.add("Learn Rust".into(), Priority::High)?;
     list.add("Build a Rust project".into(), Priority::Critical)?;
     list.add("Write docs".into(), Priority::Medium)?;
@@ -33,6 +47,6 @@ fn main() -> Result<(), TaskError> {
     for task in list.sorted_by_priority() {
         println!("{task}");
     }
-
+   
     Ok(())
 }
