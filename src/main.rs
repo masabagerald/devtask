@@ -68,7 +68,6 @@ fn main() -> Result<(), TaskError> {
         println!("our summary {}", task.summary());
     }
 
-    Ok(())
-
     
+    Ok(())
 }
