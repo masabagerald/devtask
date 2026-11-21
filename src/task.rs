@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::error::TaskError;
 use crate::priority::Priority;
 use crate::status::Status;
@@ -88,10 +90,22 @@ impl Task {
     }
 
     pub fn short_title(&self, max_chars: usize) -> &str {
-         match self.title.char_indices().nth(max_chars) {
-        Some((byte_index, _)) => &self.title[..byte_index],
-        None => &self.title,
+        match self.title.char_indices().nth(max_chars) {
+            Some((byte_index, _)) => &self.title[..byte_index],
+            None => &self.title,
+        }
     }
+}
+
+//Display for Task, in task.rs. Produce the same text as summary(), then delete summary() and update the callers. Inside fmt, you can use {} with self.priority and self.status directly, because they implement Display now.
+
+impl fmt::Display for Task {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "id: {} {} (Priority: {}, {})",
+            self.id, self.title, self.priority, self.status
+        )
     }
 }
 
@@ -166,4 +180,6 @@ mod tests {
         let task2 = Task::new(2, "Longer title".into(), Priority::Low).unwrap();
         assert_eq!(longer_title(&task1, &task2), "Longer title");
     }
+
+   
 }

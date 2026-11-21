@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Status {
     Todo,
@@ -27,6 +29,17 @@ impl Status {
     }
     pub fn same_kind(&self, other: &Status) -> bool {
         std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+//Display for Status, in status.rs. A blocked status should show its reason: Blocked: Waiting on API keys. Use a match with write! in each arm. This replaces the status_text logic currently inside summary().
+
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Status::Blocked { blocked_reason } => write!(f, "Blocked: {}", blocked_reason),
+            _ => write!(f, "{}", self.label()),
+        }
     }
 }
 

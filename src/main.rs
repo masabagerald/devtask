@@ -30,6 +30,7 @@ fn main() -> Result<(), TaskError> {
     if let Some(task) = list.get(2) {
         println!("{}", task.summary());
     }
+    
 
     //In main, search for something and print the matching summaries with a for loop.
     let search_results = list.search("rust");
@@ -68,6 +69,7 @@ fn main() -> Result<(), TaskError> {
         println!("our summary {}", task.summary());
     }
 
-    
+ 
+
     Ok(())
 }
